@@ -1,9 +1,13 @@
 const srchBtn = document.querySelector('.btnSearch');
 srchBtn.addEventListener('click', async function() {
-  const inp = document.querySelector('.inp');
+  try {
+    const inp = document.querySelector('.inp');
   
-  const movies = await getMovies(inp.value);
-  resultUI(movies);
+    const movies = await getMovies(inp.value);
+    resultUI(movies);
+  } catch (error) { 
+    errorUI(error.message);
+  }
 
 });
 
@@ -12,6 +16,7 @@ document.addEventListener('click', async function(e) {
     const imdbid = e.target.dataset.imdbid;
     const detail = await getMoviesDetail(imdbid);
     resultDtl(detail);
+    
   }
 });
 
@@ -29,32 +34,36 @@ const getMovies = key => {
     .finally(() => {
       document.querySelector('.movieCards').innerHTML = loading();
     })
-    .then(response => response.json())
     .then(response => {
-      if(response.Response === "True") {
-        return response.Search;
-      } else {
-        return response.Response;
+      if(!response.ok) {
+        throw new Error(response.status);
       }
+      return response.json();
+    })
+    .then(response => {
+      if(response.Respone = "False") {
+        throw new Error(response.Error);
+      }
+      return response.Search;
+
     });
 }
 
 const resultUI = movies => {
-  if(movies === "False") {
-    document.querySelector('.movieCards').innerHTML = `<div class="alert alert-danger" role="alert">
-                                Movie not found!
-                              </div>`;
-  } else {
-    let cards = '';
+  let cards = '';
   movies.forEach(m => {
     cards += showCards(m);
   });
 
   document.querySelector('.movieCards').innerHTML = cards;
-  }
+  
 }
 
-
+const errorUI = error => {
+  document.querySelector('.movieCards').innerHTML = `<div class="alert alert-danger" role="alert">
+                                                        ${error}
+                                                      </div>`;
+}
 
 const loading = () => {
   return`<div class="spinner-border text-primary" role="status">
